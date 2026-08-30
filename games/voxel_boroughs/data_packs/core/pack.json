@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "id": "voxel_boroughs:core",
+  "title": "Voxel Boroughs Core",
+  "version": "0.0.1-dev",
+  "license": "CC-BY-4.0",
+  "aliases": {},
+  "buildings": [
+    {"id": "voxel_boroughs:residential_low", "title": "Low-density Residence"},
+    {"id": "voxel_boroughs:commercial_low", "title": "Low-density Shop"},
+    {"id": "voxel_boroughs:industrial_low", "title": "Light Industry"},
+    {"id": "voxel_boroughs:power_plant", "title": "Neighbourhood Power Plant"},
+    {"id": "voxel_boroughs:water_tower", "title": "Water Tower"}
+  ],
+  "policies": [],
+  "services": [],
+  "challenges": []
+}
+

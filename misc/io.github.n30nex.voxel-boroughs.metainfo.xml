@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.n30nex.voxel-boroughs</id>
+  <name>Voxel Boroughs</name>
+  <summary>Build a living city in an editable voxel world</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LGPL-2.1-or-later AND MIT AND CC-BY-4.0</project_license>
+  <description>
+    <p>Voxel Boroughs is an original open-source city builder built on Luanti. Zone land, connect services, grow neighbourhoods, and inspect a deterministic city economy.</p>
+  </description>
+  <launchable type="desktop-id">io.github.n30nex.voxel-boroughs.desktop</launchable>
+  <url type="homepage">https://github.com/n30nex/voxel-boroughs</url>
+  <url type="bugtracker">https://github.com/n30nex/voxel-boroughs/issues</url>
+  <content_rating type="oars-1.1" />
+</component>
+

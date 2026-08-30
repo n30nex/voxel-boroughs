@@ -5,7 +5,9 @@ endif()
 
 # This can be read from ${PROJECT_NAME} after project() is called
 project(luanti)
-set(PROJECT_NAME_CAPITALIZED "Luanti")
+set(PROJECT_NAME_CAPITALIZED "Voxel Boroughs")
+set(VOXEL_BOROUGHS_VERSION "0.0.1-dev")
+set(LUANTI_BASE_VERSION "5.17.0")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
@@ -168,9 +170,9 @@ elseif(UNIX) # Linux, BSD etc
 		set(LOCALEDIR "locale")
 	else()
 		include(GNUInstallDirs)
-		set(SHAREDIR "${CMAKE_INSTALL_FULL_DATADIR}/${PROJECT_NAME}")
+		set(SHAREDIR "${CMAKE_INSTALL_FULL_DATADIR}/voxel-boroughs")
 		set(BINDIR "${CMAKE_INSTALL_FULL_BINDIR}")
-		set(DOCDIR "${CMAKE_INSTALL_FULL_DOCDIR}")
+		set(DOCDIR "${CMAKE_INSTALL_FULL_DATADIR}/doc/voxel-boroughs")
 		set(MANDIR "${CMAKE_INSTALL_FULL_MANDIR}")
 		set(EXAMPLE_CONF_DIR ${DOCDIR})
 		set(XDG_APPS_DIR "${CMAKE_INSTALL_FULL_DATADIR}/applications")
@@ -233,6 +235,8 @@ endif()
 
 
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/builtin" DESTINATION "${SHAREDIR}")
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/games/voxel_boroughs"
+	DESTINATION "${SHAREDIR}/games/" PATTERN ".git*" EXCLUDE)
 if(RUN_IN_PLACE)
 	install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/mods/mods_here.txt" DESTINATION "${SHAREDIR}/mods")
 	install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/textures/texture_packs_here.txt" DESTINATION "${SHAREDIR}/textures")
@@ -248,6 +252,8 @@ endif()
 if(BUILD_CLIENT)
 	install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/client/shaders" DESTINATION "${SHAREDIR}/client")
 	install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/textures/base/pack" DESTINATION "${SHAREDIR}/textures/base")
+	install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/clientmods/voxel_boroughs_bridge"
+		DESTINATION "${SHAREDIR}/clientmods")
 	if(RUN_IN_PLACE)
 		install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/clientmods" DESTINATION "${SHAREDIR}")
 		install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/client/serverlist" DESTINATION "${SHAREDIR}/client")
@@ -263,13 +269,13 @@ install(FILES "doc/world_format.md" DESTINATION "${DOCDIR}" COMPONENT "Docs")
 install(FILES "minetest.conf.example" DESTINATION "${EXAMPLE_CONF_DIR}")
 
 if(UNIX AND NOT APPLE)
-	install(FILES "doc/luanti.6" "doc/luantiserver.6" DESTINATION "${MANDIR}/man6")
-	install(FILES "misc/org.luanti.luanti.desktop" DESTINATION "${XDG_APPS_DIR}")
-	install(FILES "misc/org.luanti.luanti.metainfo.xml" DESTINATION "${METAINFODIR}")
-	install(FILES "misc/luanti.svg" DESTINATION "${ICONDIR}/hicolor/scalable/apps")
-	install(FILES "misc/luanti-xorg-icon-128.png"
+	install(FILES "doc/voxel-boroughs.6" "doc/voxel-boroughs-server.6" DESTINATION "${MANDIR}/man6")
+	install(FILES "misc/io.github.n30nex.voxel-boroughs.desktop" DESTINATION "${XDG_APPS_DIR}")
+	install(FILES "misc/io.github.n30nex.voxel-boroughs.metainfo.xml" DESTINATION "${METAINFODIR}")
+	install(FILES "misc/voxel-boroughs.svg" DESTINATION "${ICONDIR}/hicolor/scalable/apps")
+	install(FILES "misc/voxel-boroughs.png"
 		DESTINATION "${ICONDIR}/hicolor/128x128/apps"
-		RENAME "luanti.png")
+		RENAME "voxel-boroughs.png")
 endif()
 
 if(APPLE)
@@ -310,12 +316,13 @@ add_subdirectory(src)
 
 # Package generation
 
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A free open-source voxel game engine with easy modding and game creation.")
-set(CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
-set(CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
-set(CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATCH})
-set(CPACK_PACKAGE_VENDOR "celeron55")
-set(CPACK_PACKAGE_CONTACT "Perttu Ahola <celeron55@gmail.com>")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "An open-source voxel city builder based on Luanti.")
+set(CPACK_PACKAGE_VERSION "${VOXEL_BOROUGHS_VERSION}")
+set(CPACK_PACKAGE_VERSION_MAJOR 0)
+set(CPACK_PACKAGE_VERSION_MINOR 0)
+set(CPACK_PACKAGE_VERSION_PATCH 1)
+set(CPACK_PACKAGE_VENDOR "n30nex and contributors")
+set(CPACK_PACKAGE_CONTACT "https://github.com/n30nex/voxel-boroughs")
 
 include(CPackComponent)
 
@@ -329,14 +336,14 @@ if(WIN32)
 	include(InstallRequiredSystemLibraries)
 
 	if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-		set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${VERSION_STRING}-win64")
+		set(CPACK_PACKAGE_FILE_NAME "voxel-boroughs-${VOXEL_BOROUGHS_VERSION}-win64")
 	else()
-		set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${VERSION_STRING}-win32")
+		set(CPACK_PACKAGE_FILE_NAME "voxel-boroughs-${VOXEL_BOROUGHS_VERSION}-win32")
 	endif()
 
 	if(NOT RUN_IN_PLACE)
-		set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${VERSION_STRING}-nsis")
-		install(FILES "misc/luanti-icon.ico" DESTINATION ".")
+		set(CPACK_PACKAGE_FILE_NAME "voxel-boroughs-${VOXEL_BOROUGHS_VERSION}-nsis")
+		install(FILES "misc/voxel-boroughs-icon.ico" DESTINATION ".")
 		install(FILES "misc/sfx-launcher.nsi" DESTINATION ".")
 		# normalize to 0/1
 		set(DEVELOPMENT_BUILD01 0)
@@ -355,7 +362,7 @@ elseif(APPLE)
 	set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${VERSION_STRING}-osx")
 	set(CPACK_GENERATOR ZIP)
 else()
-	set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${VERSION_STRING}-linux")
+	set(CPACK_PACKAGE_FILE_NAME "voxel-boroughs-${VOXEL_BOROUGHS_VERSION}-linux")
 	set(CPACK_GENERATOR TGZ)
 	set(CPACK_SOURCE_GENERATOR TGZ)
 endif()

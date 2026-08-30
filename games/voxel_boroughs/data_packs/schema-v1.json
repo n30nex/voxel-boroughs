@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/n30nex/voxel-boroughs/schemas/data-pack-v1.json",
+  "title": "Voxel Boroughs data pack v1",
+  "type": "object",
+  "required": ["schema", "id", "title", "version"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": 1},
+    "id": {"type": "string", "pattern": "^[a-z0-9_]+:[a-z0-9_./-]+$"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 80},
+    "version": {"type": "string", "minLength": 1, "maxLength": 32},
+    "license": {"type": "string", "minLength": 1, "maxLength": 64},
+    "aliases": {
+      "type": "object",
+      "additionalProperties": {"type": "string", "pattern": "^[a-z0-9_]+:[a-z0-9_./-]+$"}
+    },
+    "buildings": {"$ref": "#/$defs/contentList"},
+    "policies": {"$ref": "#/$defs/contentList"},
+    "services": {"$ref": "#/$defs/contentList"},
+    "challenges": {"$ref": "#/$defs/contentList"}
+  },
+  "$defs": {
+    "contentList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title"],
+        "additionalProperties": true,
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9_]+:[a-z0-9_./-]+$"},
+          "title": {"type": "string", "minLength": 1, "maxLength": 80},
+          "schematic": {"type": "string", "pattern": "^[^/].*\\.mts$"},
+          "texture": {"type": "string", "pattern": "^[^/].*\\.png$"},
+          "sound": {"type": "string", "pattern": "^[^/].*\\.(ogg|wav)$"}
+        }
+      }
+    }
+  }
+}
+

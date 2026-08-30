@@ -5,6 +5,7 @@
 #include "camera.h"
 #include "client.h"
 #include "clientmap.h"     // MapDrawControl
+#include "client/strategy_camera.h"
 #include "localplayer.h"
 #include "player.h"
 #include <cmath>
@@ -452,6 +453,32 @@ void Camera::update(LocalPlayer* player, f32 frametime, f32 tool_reload_ratio)
 		m_camera_position = my_cp;
 	}
 
+	if (m_strategy_mode) {
+		if (!m_strategy_focus_initialized) {
+			m_strategy_focus = player_position;
+			m_strategy_focus_initialized = true;
+		} else {
+			// The player is the authoritative map-loading focus. Its horizontal
+			// movement supplies WASD and edge panning without client teleports.
+			m_strategy_focus.X = player_position.X;
+			m_strategy_focus.Z = player_position.Z;
+			m_strategy_focus.Y = player_position.Y;
+		}
+
+		const f32 zoom_lerp = 1.0f - std::exp(-12.0f * frametime);
+		m_strategy_distance +=
+			(m_strategy_target_distance - m_strategy_distance) * zoom_lerp;
+		m_camera_position = StrategyCamera::orbitPosition(m_strategy_focus,
+			m_strategy_yaw, m_strategy_elevation, m_strategy_distance);
+		m_camera_direction = m_strategy_focus - m_camera_position;
+		m_camera_direction.normalize();
+
+		v3f camera_right = m_camera_direction.crossProduct(v3f(0.0f, 1.0f, 0.0f));
+		camera_right.normalize();
+		abs_cam_up = camera_right.crossProduct(m_camera_direction);
+		abs_cam_up.normalize();
+	}
+
 	// Set camera node transformation
 	m_cameranode->setPosition(m_camera_position - intToFloat(m_camera_offset, BS));
 	m_cameranode->setUpVector(abs_cam_up);
@@ -571,6 +598,37 @@ void Camera::update(LocalPlayer* player, f32 frametime, f32 tool_reload_ratio)
 		m_view_bobbing_state = 2;
 		m_view_bobbing_speed = 60;
 	}
+}
+
+void Camera::setStrategyMode(bool enabled)
+{
+	m_strategy_mode = enabled;
+	m_strategy_focus_initialized = false;
+	if (enabled)
+		m_camera_mode = CAMERA_MODE_FIRST;
+}
+
+void Camera::rotateStrategy(f32 yaw_delta, f32 elevation_delta)
+{
+	if (!m_strategy_mode)
+		return;
+	m_strategy_yaw = std::fmod(m_strategy_yaw + yaw_delta, 360.0f);
+	if (m_strategy_yaw < 0.0f)
+		m_strategy_yaw += 360.0f;
+	m_strategy_elevation = std::clamp(
+		m_strategy_elevation + elevation_delta, 25.0f, 82.0f);
+}
+
+void Camera::zoomStrategy(s32 wheel_steps)
+{
+	if (m_strategy_mode && wheel_steps != 0)
+		m_strategy_target_distance =
+			StrategyCamera::zoomTarget(m_strategy_target_distance, wheel_steps);
+}
+
+f32 Camera::getStrategyControlYaw() const
+{
+	return StrategyCamera::controlYaw(m_strategy_yaw);
 }
 
 void Camera::updateViewingRange()

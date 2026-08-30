@@ -140,6 +140,14 @@ public:
 	// Update the camera from the local player's position.
 	void update(LocalPlayer* player, f32 frametime, f32 tool_reload_ratio);
 
+	// Branded overhead strategy view. This is intentionally separate from
+	// CameraMode because that enum is part of Luanti's network protocol.
+	void setStrategyMode(bool enabled);
+	bool isStrategyMode() const { return m_strategy_mode; }
+	void rotateStrategy(f32 yaw_delta, f32 elevation_delta);
+	void zoomStrategy(s32 wheel_steps);
+	f32 getStrategyControlYaw() const;
+
 	// Adjust the camera offset when needed
 	void updateOffset();
 
@@ -253,6 +261,13 @@ private:
 	ItemStack m_wield_item_next;
 
 	CameraMode m_camera_mode;
+	bool m_strategy_mode = false;
+	bool m_strategy_focus_initialized = false;
+	v3f m_strategy_focus;
+	f32 m_strategy_yaw = 45.0f;
+	f32 m_strategy_elevation = 55.0f;
+	f32 m_strategy_distance = 1200.0f;
+	f32 m_strategy_target_distance = 1200.0f;
 
 	f32 m_cache_view_bobbing_amount;
 	bool m_arm_inertia;

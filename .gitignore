@@ -41,6 +41,8 @@ build/.cmake/
 .gradle
 # Clang
 .cache
+__pycache__/
+*.pyc
 # AppImage
 *.AppImage
 *.zsync
@@ -61,6 +63,7 @@ AppDir
 /bin/
 /games/*
 !/games/devtest/
+!/games/voxel_boroughs/
 /games/devtest/mods/soundstuff/sounds/gitignored_sounds/*
 !/games/devtest/mods/soundstuff/sounds/gitignored_sounds/custom_sounds_here.txt
 /cache
@@ -74,6 +77,7 @@ AppDir
 !/worlds/worlds_here.txt
 /clientmods/*
 !/clientmods/preview/
+!/clientmods/voxel_boroughs_bridge/
 /client/mod_storage/
 /mod_data
 
