@@ -29,7 +29,7 @@ cleanup() {
 trap cleanup EXIT
 
 "$source_root/ops/pi/preflight.sh" "$source_sha"
-test -x "$source_root/bin/voxel-boroughs" 
+test -x "$source_root/bin/voxel-boroughs"
 test -x "$source_root/bin/voxel-boroughs-server"
 test ! -e "$release_dir"
 test ! -e "$artifact_dir"
