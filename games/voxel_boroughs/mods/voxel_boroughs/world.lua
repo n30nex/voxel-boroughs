@@ -121,7 +121,6 @@ function vb.render_cell_by_key(key)
 	end
 
 	vm:set_data(data)
-	vm:calc_lighting(p1, p2)
 	vm:write_to_map()
 end
 
@@ -244,4 +243,3 @@ function vb.use_build_tool(player, pointed_thing, action)
 		core.chat_send_player(player:get_player_name(), messages[reason] or ("Build rejected: " .. tostring(reason)))
 	end
 end
-
