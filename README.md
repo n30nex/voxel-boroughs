@@ -76,6 +76,12 @@ C++ unit tests include the strategy camera's orbit, zoom bounds, and view-relati
 - `data-packs/schema-v1.json`: non-executable content-pack schema.
 - `ops/pi/`: guarded Pi build, artifact, and LAN development-service tooling.
 
+On `neopi5`, `ops/pi/build-native-arm64.sh SOURCE_SHA` performs the guarded
+two-job native build, all unit and headless checks, and creates a deterministic
+checksummed artifact. `ops/pi/install-dev-service.sh SOURCE_SHA` installs that
+exact candidate as the private `192.168.0.24:30001/udp` user service; the
+separate rollback script swaps back to the prior immutable candidate.
+
 The client presents intent. The Lua server validates permissions, geometry, annexation, funds, and state before applying any outcome. Simulation work is deterministic and queued in small batches so a future 512×512-cell city does not require one Lua agent per resident.
 
 ## Upstream and licensing
