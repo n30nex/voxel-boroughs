@@ -722,6 +722,8 @@ void initializePaths()
 		path_share = execpath;
 		path_user  = execpath;
 	}
+	if (auto user_path_env = getUserPathEnvVar())
+		path_user = std::move(user_path_env.value());
 	path_cache = path_user + DIR_DELIM "cache";
 
 #else
