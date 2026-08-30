@@ -121,7 +121,8 @@ void set_default_settings()
 	settings->setDefault("curl_file_download_timeout", "300000");
 	settings->setDefault("curl_verify_cert", "true");
 	settings->setDefault("enable_remote_media_server", "true");
-	settings->setDefault("enable_client_modding", "false");
+	// The Voxel Boroughs UI bridge is a reviewed part of the branded client.
+	settings->setDefault("enable_client_modding", "true");
 	settings->setDefault("enable_sscsm", "nowhere");
 	settings->setDefault("max_out_chat_queue_size", "20");
 	settings->setDefault("pause_on_lost_focus", "false");
@@ -457,7 +458,7 @@ void set_default_settings()
 	settings->setDefault("default_password", "");
 	settings->setDefault("default_privs", "interact, shout");
 	settings->setDefault("enable_pvp", "true");
-	settings->setDefault("enable_mod_channels", "false");
+	settings->setDefault("enable_mod_channels", "true");
 	settings->setDefault("disallow_empty_password", "false");
 	settings->setDefault("anticheat_flags", flagdesc_anticheat,
 		AC_DIGGING | AC_INTERACTION | AC_MOVEMENT);

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=Voxel Boroughs
+GenericName=City-building Game
+Comment=Build a living city in an editable voxel world
+Exec=voxel-boroughs
+Icon=voxel-boroughs
+Terminal=false
+Type=Application
+Categories=Game;Simulation;
+StartupNotify=true
+StartupWMClass=voxel-boroughs
+Keywords=city;builder;simulation;voxel;transport;strategy;
+

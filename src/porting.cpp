@@ -179,8 +179,14 @@ void signal_handler_init()
 
 static std::optional<std::string> getUserPathEnvVar()
 {
+	if (const char *user_path = getenv("VOXEL_BOROUGHS_USER_PATH");
+			user_path && *user_path) {
+		return user_path;
+	}
 	if (const char *user_path = getenv("LUANTI_USER_PATH");
 	    		user_path && *user_path) {
+		warningstream << "LUANTI_USER_PATH is supported for engine compatibility; "
+			      << "use VOXEL_BOROUGHS_USER_PATH for this client." << std::endl;
 		return user_path;
 	}
 	if (const char *user_path = getenv("MINETEST_USER_PATH");
@@ -502,23 +508,22 @@ bool setSystemPaths()
 		path_share += DIR_DELIM "..";
 	}
 
-	// Use %LUANTI_USER_PATH%
-	DWORD len = GetEnvironmentVariable("LUANTI_USER_PATH", buf, sizeof(buf));
+	// Use %VOXEL_BOROUGHS_USER_PATH%.
+	DWORD len = GetEnvironmentVariable("VOXEL_BOROUGHS_USER_PATH", buf, sizeof(buf));
 	if (!len) {
-		len = GetEnvironmentVariable("MINETEST_USER_PATH", buf, sizeof(buf));
+		len = GetEnvironmentVariable("LUANTI_USER_PATH", buf, sizeof(buf));
 		if (len) {
-			warningstream << "MINETEST_USER_PATH is deprecated, "
-				      << "use LUANTI_USER_PATH instead." << std::endl;
+			warningstream << "LUANTI_USER_PATH is supported for engine compatibility; "
+				      << "use VOXEL_BOROUGHS_USER_PATH for this client." << std::endl;
 		}
 	}
 
-	FATAL_ERROR_IF(len >= sizeof(buf), "Failed to get LUANTI_USER_PATH (too large for buffer)");
+	FATAL_ERROR_IF(len >= sizeof(buf), "Failed to get VOXEL_BOROUGHS_USER_PATH (too large for buffer)");
 	if (len == 0) {
-		// Use "C:\Users\<user>\AppData\Roaming\<PROJECT_NAME_C>"
+		// Use "C:\Users\<user>\AppData\Roaming\Voxel Boroughs".
 		len = GetEnvironmentVariable("APPDATA", buf, sizeof(buf));
 		FATAL_ERROR_IF(len == 0 || len > sizeof(buf), "Failed to get APPDATA");
-		// TODO: Luanti with migration
-		path_user = std::string(buf) + DIR_DELIM "Minetest";
+		path_user = std::string(buf) + DIR_DELIM "Voxel Boroughs";
 	} else {
 		path_user = std::string(buf);
 	}
@@ -557,7 +562,7 @@ bool setSystemPaths()
 		trylist.push_back(static_sharedir);
 
 	trylist.push_back(bindir + DIR_DELIM ".." DIR_DELIM "share"
-		DIR_DELIM + PROJECT_NAME);
+		DIR_DELIM "voxel-boroughs");
 	trylist.push_back(bindir + DIR_DELIM "..");
 
 	for (auto i = trylist.begin(); i != trylist.end(); ++i) {
@@ -582,8 +587,7 @@ bool setSystemPaths()
 	if (user_path_env) {
 		path_user = std::move(user_path_env.value());
 	} else {
-		// TODO: luanti with migration
-		path_user = std::string(getHomeOrFail()) + DIR_DELIM "." "minetest";
+		path_user = std::string(getHomeOrFail()) + DIR_DELIM ".voxel-boroughs";
 	}
 
 	return true;
@@ -611,9 +615,8 @@ bool setSystemPaths()
 	if (user_path_env) {
 		path_user = std::move(user_path_env.value());
 	} else {
-		// TODO: luanti with migration
 		path_user = std::string(getHomeOrFail())
-			+ "/Library/Application Support/" "minetest";
+			+ "/Library/Application Support/Voxel Boroughs";
 	}
 	return true;
 }
@@ -629,8 +632,7 @@ bool setSystemPaths()
 	if (user_path_env) {
 		path_user = std::move(user_path_env.value());
 	} else {
-		// TODO: luanti with migration
-		path_user  = std::string(getHomeOrFail()) + DIR_DELIM "." "minetest";
+		path_user = std::string(getHomeOrFail()) + DIR_DELIM ".voxel-boroughs";
 	}
 	return true;
 }

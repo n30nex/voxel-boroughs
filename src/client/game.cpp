@@ -49,6 +49,7 @@
 #include "hud.h"
 #include <AnimatedMeshSceneNode.h>
 #include <ICameraSceneNode.h>
+#include <ISceneCollisionManager.h>
 #include "util/tracy_wrapper.h"
 #include "item_visuals_manager.h"
 
@@ -885,6 +886,7 @@ bool Game::createClient(const GameStartData &start_data)
 	/* Camera
 	 */
 	camera = new Camera(*draw_control, client, m_rendering_engine);
+	camera->setStrategyMode(m_strategy_client);
 	if (client->modsLoaded())
 		client->getScript()->on_camera_ready(camera);
 	client->setCamera(camera);
@@ -1424,6 +1426,8 @@ void Game::processUserInput(f32 dtime)
 		runData.jump_timer_down += dtime;
 
 	processKeyInput();
+	if (m_strategy_client)
+		camera->zoomStrategy(input->getMouseWheel());
 	processItemSelection(&runData.new_playeritem);
 }
 
@@ -1506,7 +1510,7 @@ void Game::processKeyInput()
 		toggleFog();
 	} else if (wasKeyDown(KeyType::TOGGLE_UPDATE_CAMERA)) {
 		toggleUpdateCamera();
-	} else if (wasKeyPressed(KeyType::CAMERA_MODE)) {
+	} else if (!m_strategy_client && wasKeyPressed(KeyType::CAMERA_MODE)) {
 		camera->toggleCameraMode();
 		updateCameraMode();
 	} else if (wasKeyPressed(KeyType::TOGGLE_DEBUG)) {
@@ -1938,6 +1942,35 @@ void Game::checkZoomEnabled()
 void Game::updateCameraDirection(CameraOrientation *cam, float dtime)
 {
 	auto *cur_control = device->getCursorControl();
+	if (m_strategy_client) {
+		if (cur_control) {
+			cur_control->setRelativeMode(false);
+			if (!cur_control->isVisible())
+				cur_control->setVisible(true);
+		}
+
+		if ((device->isWindowActive() && device->isWindowFocused() && !isMenuActive()) ||
+				input->isRandom()) {
+			const v2s32 mouse = input->getMousePos();
+			if (isKeyDown(KeyType::PLACE)) {
+				if (m_strategy_rotating) {
+					const v2s32 delta = mouse - m_strategy_last_mouse;
+					camera->rotateStrategy(delta.X * 0.25f,
+						(m_invert_mouse ? delta.Y : -delta.Y) * 0.20f);
+				}
+				m_strategy_rotating = true;
+			} else {
+				m_strategy_rotating = false;
+			}
+			m_strategy_last_mouse = mouse;
+		} else {
+			m_strategy_rotating = false;
+		}
+
+		cam->camera_yaw = camera->getStrategyControlYaw();
+		cam->camera_pitch = 0.0f;
+		return;
+	}
 
 	/* On Linux and Windows, enabling relative mouse mode somehow results
 	in simulated mouse events being generated from touch events, even though
@@ -2055,17 +2088,39 @@ void Game::updatePlayerControl(const CameraOrientation &cam)
 
 	//TimeTaker tt("update player control", NULL, PRECISION_NANO);
 
+	f32 move_forward = getAxisValue(KeyType::FORWARD);
+	f32 move_backward = getAxisValue(KeyType::BACKWARD);
+	f32 move_left = getAxisValue(KeyType::LEFT);
+	f32 move_right = getAxisValue(KeyType::RIGHT);
+	if (m_strategy_client && !m_strategy_rotating && !isMenuActive()) {
+		const v2s32 mouse = input->getMousePos();
+		const core::dimension2du size = driver->getScreenSize();
+		constexpr s32 edge = 20;
+		if (mouse.Y >= 0 && mouse.Y < edge)
+			move_forward = std::max(move_forward, (edge - mouse.Y) / static_cast<f32>(edge));
+		if (mouse.Y <= static_cast<s32>(size.Height) &&
+				mouse.Y > static_cast<s32>(size.Height) - edge)
+			move_backward = std::max(move_backward,
+				(mouse.Y - (static_cast<s32>(size.Height) - edge)) / static_cast<f32>(edge));
+		if (mouse.X >= 0 && mouse.X < edge)
+			move_left = std::max(move_left, (edge - mouse.X) / static_cast<f32>(edge));
+		if (mouse.X <= static_cast<s32>(size.Width) &&
+				mouse.X > static_cast<s32>(size.Width) - edge)
+			move_right = std::max(move_right,
+				(mouse.X - (static_cast<s32>(size.Width) - edge)) / static_cast<f32>(edge));
+	}
+
 	PlayerControl control(
-		getAxisValue(KeyType::FORWARD),
-		getAxisValue(KeyType::BACKWARD),
-		getAxisValue(KeyType::LEFT),
-		getAxisValue(KeyType::RIGHT),
+		move_forward,
+		move_backward,
+		move_left,
+		move_right,
 		isKeyDown(KeyType::JUMP) || player->getAutojump(),
 		getTogglableKeyState(KeyType::AUX1,  m_cache_toggle_aux1_key, player->control.aux1),
 		getTogglableKeyState(KeyType::SNEAK, allow_sneak_toggle,      player->control.sneak),
 		isKeyDown(KeyType::ZOOM),
 		isKeyDown(KeyType::DIG),
-		isKeyDown(KeyType::PLACE),
+		m_strategy_client ? false : isKeyDown(KeyType::PLACE),
 		cam.camera_pitch,
 		cam.camera_yaw
 	);
@@ -2598,9 +2653,12 @@ void Game::updateCameraMode()
 {
 	LocalPlayer *player = client->getEnv().getLocalPlayer();
 
-	// Obey server choice
-	if (player->allowed_camera_mode != CAMERA_MODE_ANY)
+	if (m_strategy_client) {
+		camera->setCameraMode(CAMERA_MODE_FIRST);
+	} else if (player->allowed_camera_mode != CAMERA_MODE_ANY) {
+		// Obey server choice for the inherited Luanti camera modes.
 		camera->setCameraMode(player->allowed_camera_mode);
+	}
 
 	GenericCAO *playercao = player->getCAO();
 	if (playercao) {
@@ -2685,26 +2743,36 @@ void Game::processPlayerInteraction(f32 dtime, bool show_hud)
 
 	core::line3d<f32> shootline;
 
-	switch (camera->getCameraMode()) {
-	case CAMERA_MODE_ANY:
-	case CameraMode_END:
-		assert(false);
-		break;
-	case CAMERA_MODE_FIRST:
-		// Shoot from camera position, with bobbing
-		shootline.start = camera->getPosition();
-		break;
-	case CAMERA_MODE_THIRD:
-		// Shoot from player head, no bobbing
-		shootline.start = camera->getHeadPosition();
-		break;
-	case CAMERA_MODE_THIRD_FRONT:
-		shootline.start = camera->getHeadPosition();
-		// prevent player pointing anything in front-view
-		d = 0;
-		break;
+	if (m_strategy_client) {
+		shootline = smgr->getSceneCollisionManager()->getRayFromScreenCoordinates(
+			input->getMousePos(), camera->getCameraNode());
+		shootline.start += intToFloat(camera_offset, BS);
+		shootline.end += intToFloat(camera_offset, BS);
+		v3f cursor_direction = shootline.getVector();
+		cursor_direction.normalize();
+		shootline.end = shootline.start + cursor_direction * BS * d;
+	} else {
+		switch (camera->getCameraMode()) {
+		case CAMERA_MODE_ANY:
+		case CameraMode_END:
+			assert(false);
+			break;
+		case CAMERA_MODE_FIRST:
+			// Shoot from camera position, with bobbing
+			shootline.start = camera->getPosition();
+			break;
+		case CAMERA_MODE_THIRD:
+			// Shoot from player head, no bobbing
+			shootline.start = camera->getHeadPosition();
+			break;
+		case CAMERA_MODE_THIRD_FRONT:
+			shootline.start = camera->getHeadPosition();
+			// prevent player pointing anything in front-view
+			d = 0;
+			break;
+		}
+		shootline.end = shootline.start + camera_direction * BS * d;
 	}
-	shootline.end = shootline.start + camera_direction * BS * d;
 
 	if (isTouchShootlineUsed()) {
 		shootline = g_touchcontrols->getShootline();
@@ -3677,10 +3745,12 @@ void Game::drawScene(ProfilerGraph *graph, RunStats *stats)
 	const LocalPlayer *player = this->client->getEnv().getLocalPlayer();
 	bool draw_wield_tool = (this->m_game_ui->m_flags.show_hud &&
 			(player->hud_flags & HUD_FLAG_WIELDITEM_VISIBLE) &&
-			(this->camera->getCameraMode() == CAMERA_MODE_FIRST));
+			(this->camera->getCameraMode() == CAMERA_MODE_FIRST) &&
+			!m_strategy_client);
 	bool draw_crosshair = (
 			(player->hud_flags & HUD_FLAG_CROSSHAIR_VISIBLE) &&
-			(this->camera->getCameraMode() != CAMERA_MODE_THIRD_FRONT));
+			(this->camera->getCameraMode() != CAMERA_MODE_THIRD_FRONT) &&
+			!m_strategy_client);
 
 	if (isTouchShootlineUsed())
 		draw_crosshair = false;

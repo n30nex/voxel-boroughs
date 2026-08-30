@@ -276,6 +276,22 @@ void Client::loadMods()
 	}
 
 	m_mods = modconf.getMods();
+	bool bridge_configured = false;
+	for (const ModSpec &mod : m_mods) {
+		if (mod.name == "voxel_boroughs_bridge") {
+			bridge_configured = true;
+			break;
+		}
+	}
+	if (!bridge_configured) {
+		const std::string bridge_path = getClientModsLuaPath() + DIR_DELIM +
+			"voxel_boroughs_bridge";
+		if (fs::PathExists(bridge_path + DIR_DELIM + "init.lua")) {
+			infostream << "Client loading trusted mod: voxel_boroughs_bridge" << std::endl;
+			m_mod_vfs->scanModIntoMemory("voxel_boroughs_bridge", bridge_path);
+			m_script->loadModFromMemory("voxel_boroughs_bridge");
+		}
+	}
 
 	// complain about mods with unsatisfied dependencies
 	if (!modconf.isConsistent()) {

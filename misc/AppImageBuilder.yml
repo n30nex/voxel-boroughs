@@ -7,7 +7,7 @@ AppDir:
     name: Luanti
     icon: luanti
     version: !ENV ${VERSION}
-    exec: usr/bin/luanti
+    exec: usr/bin/voxel-boroughs
     exec_args: $@
   files:
     include: []
@@ -54,5 +54,5 @@ script: |
     cmake --install appimage-build
 
     # Is a backup icon location in case
-    mkdir -p AppDir/usr/share/luanti/misc
-    cp AppDir/usr/share/icons/hicolor/128x128/apps/luanti.png AppDir/usr/share/luanti/misc/luanti-xorg-icon-128.png
+    mkdir -p AppDir/usr/share/voxel-boroughs/misc
+    cp AppDir/usr/share/icons/hicolor/128x128/apps/voxel-boroughs.png AppDir/usr/share/voxel-boroughs/misc/voxel-boroughs.png

@@ -384,6 +384,9 @@ private:
 	bool m_first_loop_after_window_activation = false;
 	bool m_camera_offset_changed = false;
 	bool m_game_focused = false;
+	bool m_strategy_client = true;
+	bool m_strategy_rotating = false;
+	v2s32 m_strategy_last_mouse;
 
 	bool m_does_lost_focus_pause_game = false;
 

@@ -659,6 +659,7 @@ if(BUILD_CLIENT)
 	else()
 		add_executable(${PROJECT_NAME})
 	endif()
+	set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "voxel-boroughs")
 
 
 	if(CMAKE_GENERATOR STREQUAL "Xcode")
@@ -790,6 +791,7 @@ endif(BUILD_CLIENT)
 if(BUILD_SERVER)
 	# server target
 	add_executable(${PROJECT_NAME}server)
+	set_target_properties(${PROJECT_NAME}server PROPERTIES OUTPUT_NAME "voxel-boroughs-server")
 	list(SORT server_SRCS)
 	target_sources(${PROJECT_NAME}server PRIVATE
 		$<TARGET_OBJECTS:EngineCommon>
@@ -1110,9 +1112,6 @@ if(BUILD_CLIENT AND NOT ANDROID)
 		ARCHIVE DESTINATION ${BINDIR}
 		BUNDLE DESTINATION .
 	)
-	if(UNIX)
-		CreateLegacyAlias(minetest_alias "${EXECUTABLE_OUTPUT_PATH}/minetest" ${PROJECT_NAME})
-	endif()
 
 	if(APPLE)
 		install(CODE "
@@ -1136,9 +1135,6 @@ endif()
 
 if(BUILD_SERVER)
 	install(TARGETS ${PROJECT_NAME}server DESTINATION ${BINDIR})
-	if(UNIX)
-		CreateLegacyAlias(minetestserver_alias "${EXECUTABLE_OUTPUT_PATH}/minetestserver" ${PROJECT_NAME}server)
-	endif()
 endif()
 
 if (ANDROID)
