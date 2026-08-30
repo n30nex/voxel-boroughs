@@ -43,8 +43,11 @@ write_config "$verify_config" verify
 run_phase() {
 	local config="$1"
 	local log="$2"
-	timeout 90s "$binary" --world "$world" --gameid voxel_boroughs \
-		--config "$config" --logfile "$log"
+	if ! timeout 90s "$binary" --world "$world" --gameid voxel_boroughs \
+		--config "$config" --logfile "$log"; then
+		cat "$log" >&2
+		return 1
+	fi
 	if grep -q 'VB_INTEGRATION_FAIL' "$log"; then
 		grep 'VB_INTEGRATION_FAIL' "$log" >&2
 		return 1
