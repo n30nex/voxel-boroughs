@@ -75,5 +75,7 @@ jobs:
       run: |
         $HOME/.luarocks/bin/luacheck --config=games/devtest/.luacheckrc games/devtest
 
-    - name: Run Voxel Boroughs deterministic simulation tests
-      run: lua games/voxel_boroughs/mods/voxel_boroughs/tests/test_simulation.lua
+    - name: Run Voxel Boroughs Lua checks
+      run: |
+        find games/voxel_boroughs clientmods/voxel_boroughs_bridge -name '*.lua' -print0 | xargs -0 -n1 luac -p
+        lua games/voxel_boroughs/mods/voxel_boroughs/tests/test_simulation.lua

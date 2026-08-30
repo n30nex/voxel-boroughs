@@ -21,6 +21,7 @@ dofile(root .. "/ui.lua")
 dofile(root .. "/world.lua")
 dofile(root .. "/traffic.lua")
 dofile(root .. "/protocol.lua")
+dofile(root .. "/integration_test.lua")
 
 local day_accumulator = 0
 local growth_queue = nil

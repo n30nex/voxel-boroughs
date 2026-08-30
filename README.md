@@ -57,6 +57,14 @@ The simulation core is engine-independent Lua 5.1:
 lua games/voxel_boroughs/mods/voxel_boroughs/tests/test_simulation.lua
 ```
 
+After a run-in-place server build, the headless integration scenario creates a
+seeded district, writes a versioned save, restarts the server, and verifies
+identical city-state and voxel-layout hashes:
+
+```sh
+util/test_voxel_boroughs_headless.sh
+```
+
 C++ unit tests include the strategy camera's orbit, zoom bounds, and view-relative control yaw. The project also retains Luanti's upstream unit and integration suites.
 
 ## Architecture
